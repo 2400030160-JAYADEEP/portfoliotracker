@@ -116,7 +116,7 @@ const Dashboard = () => {
                         <div className="header-left">
                             <div className="logo">
                                 <FolderOpen size={32} />
-                                <h1>PortfolioHub</h1>
+                                <h1>EduDossier</h1>
                             </div>
                         </div>
                         <div className="header-right">

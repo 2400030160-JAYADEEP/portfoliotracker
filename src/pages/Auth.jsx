@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { validateEmail, validatePassword, validateName } from '../utils/validation';
+import { validateEmail, validatePassword, validateName, validateCaptcha } from '../utils/validation';
 import Toast from '../components/Toast';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Captcha from '../components/Captcha';
 import './Auth.css';
 
 const Auth = () => {
@@ -18,6 +19,8 @@ const Auth = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState(null);
+    const [captchaVerified, setCaptchaVerified] = useState(false);
+    const [captchaReset, setCaptchaReset] = useState(false);
 
     const { login, register } = useAuth();
     const navigate = useNavigate();
@@ -29,6 +32,13 @@ const Auth = () => {
         // Clear error for this field
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const handleCaptchaVerify = (isVerified) => {
+        setCaptchaVerified(isVerified);
+        if (errors.captcha) {
+            setErrors(prev => ({ ...prev, captcha: '' }));
         }
     };
 
@@ -45,6 +55,9 @@ const Auth = () => {
 
         const passwordError = validatePassword(formData.password);
         if (passwordError) newErrors.password = passwordError;
+
+        const captchaError = validateCaptcha(captchaVerified);
+        if (captchaError) newErrors.captcha = captchaError;
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -72,6 +85,9 @@ const Auth = () => {
             }
         } catch (error) {
             setToast({ message: error.message, type: 'error' });
+            // Reset CAPTCHA on form submission error
+            setCaptchaVerified(false);
+            setCaptchaReset(prev => !prev);
         } finally {
             setLoading(false);
         }
@@ -81,6 +97,8 @@ const Auth = () => {
         setIsLogin(!isLogin);
         setFormData({ name: '', email: '', password: '' });
         setErrors({});
+        setCaptchaVerified(false);
+        setCaptchaReset(prev => !prev);
     };
 
     return (
@@ -98,7 +116,7 @@ const Auth = () => {
                             <div className="logo-icon">
                                 {isLogin ? <LogIn size={32} /> : <UserPlus size={32} />}
                             </div>
-                            <h1 className="auth-title">PortfolioHub</h1>
+                            <h1 className="auth-title">EduDossier</h1>
                         </div>
                         <p className="auth-subtitle">
                             {isLogin
@@ -189,6 +207,15 @@ const Auth = () => {
                             )}
                         </div>
 
+                        <Captcha
+                            onVerify={handleCaptchaVerify}
+                            reset={captchaReset}
+                            className="form-group"
+                        />
+                        {errors.captcha && (
+                            <div className="form-error">{errors.captcha}</div>
+                        )}
+
                         <button
                             type="submit"
                             className="btn btn-primary btn-lg auth-submit"
@@ -226,17 +253,7 @@ const Auth = () => {
                         </button>
                     </div>
 
-                    <div className="auth-demo-info">
-                        <p className="demo-title">Demo Accounts:</p>
-                        <div className="demo-accounts">
-                            <div className="demo-account">
-                                <strong>Admin:</strong> admin@portfoliohub.com / Admin@123
-                            </div>
-                            <div className="demo-account">
-                                <strong>Student:</strong> student@example.com / Student@123
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
 

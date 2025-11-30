@@ -90,3 +90,8 @@ export const validateFileType = (file, allowedTypes = []) => {
     }
     return '';
 };
+
+export const validateCaptcha = (isVerified) => {
+    if (!isVerified) return 'Please complete the security verification';
+    return '';
+};
